@@ -1,3 +1,8 @@
 /Library
 /obj
 /Logs
+/Temp
+/.idea
+Assembly-CSharp-Editor.csproj
+Assembly-CSharp.csproj
+IS-URPVFX-Shaders.sln

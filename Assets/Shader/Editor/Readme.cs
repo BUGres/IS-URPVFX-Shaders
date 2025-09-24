@@ -41,15 +41,5 @@ public class ReadmeEditor : Editor
                             "", style);
             GUILayout.TextArea((target as Readme).text);
         }
-        
-        GUILayout.Label("");
-        GUILayout.Label("");
-        GUILayout.Label("");
-        GUILayout.Label("");
-        GUILayout.Label("");
-        if (GUILayout.Button("Edit(请勿点击)"))
-        {
-            isedit = !isedit;
-        }
     }
 }
