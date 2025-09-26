@@ -108,3 +108,16 @@ public class vfx_shader_shield : VFXShaderBase
         GUILayout.TextArea("推荐用于标准球形");
     }
 }
+
+public class vfx_shader_knife : VFXShaderBase
+{
+    public override void OnGUI(MaterialEditor materialEditor, MaterialProperty[] properties)
+    {
+        GUIStyle titleStyle = new GUIStyle(GUI.skin.label);
+        titleStyle.fontSize = 20;
+        titleStyle.fontStyle = FontStyle.Bold;
+        GUILayout.Label("刀光类型", titleStyle);
+        base.OnGUI(materialEditor, properties);
+        GUILayout.TextArea("推荐用于标准球形");
+    }
+}

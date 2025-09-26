@@ -1,26 +1,31 @@
-Shader "VFX/vfx_shader_dissolve"
+Shader "VFX/vfx_shader_knife"
 {
     Properties
     {
         [MainTexture][NoScaleOffset] _MainTex ("MainTexture", 2D) = "white" {}
         [MainColor][HDR] _MainCol ("MainColor", Color) = (1, 1, 1, 1)
         
-        [NoScaleOffset] _Noise ("Noise", 2D) = "black" {}
-        [NoScaleOffset] _NoiseMask ("NoiseMask(不受下面UV缩放和时间移动影响)", 2D) = "black" {}
-        _Dissolve("溶解进度", Range(0, 1)) = 0
-        _DissolveScale("溶解噪声UV缩放(xy)和时间移动(zw)", Vector) = (1, 1, 0, 0)
+        [NoScaleOffset] _Noise ("Noise", 2D) = "white" {}
+        _Tim("时间（或者是刀光转动的进度） as Texcoord0.z", Range(0, 1)) = 0
         
-        [Header(Edge)][Toggle] _Edge("启用溶解边缘", Float) = 0
-        [HDR] _EdgeColor("NDVColor边缘颜色", Color) = (1, 1, 1, 1)
-        _EdgeLen("溶解边缘长度", Range(0, 1)) = 0
+        [Header(Edge)] _NoiseMul("边缘（0.5>value>0）", Vector) = (0,0,0,0)
+        _NoisePow("边缘形状", Range(0, 8)) = 1
+        [Toggle] _NoiseView("预览边缘", Float) = 0
         
-        [Header(NDV)][Toggle] _NDVUse("NDV功能是否启用(正交相机无效，正交时不要启用)", Float) = 0
-        [HDR] _NDVColor("NDVColor边缘颜色", Color) = (1, 1, 1, 1)
-        _NDVPow("NDV选取Pow运算，用于更改提取部分，此值分布不均匀(default = 1)", Range(0, 16)) = 1
+        [HDR] _NoiseColor3("噪声层1（高光外边层）", Color) = (1, 1, 1, 1)
+        [HDR] _NoiseColor2("噪声层2（中层）", Color) = (1, 1, 1, 1)
+        [HDR] _NoiseColor1("噪声层3（底层）", Color) = (1, 1, 1, 1)
         
-        [Header(Flow)][Toggle] _FlowUse("UV流动功能", Float) = 0
+        [Header(RT)][Toggle] _RtUse("是否将Rt用于MainTexture（用屏幕渲染结果作为渲染输入）", Float) = 0
+        
+        [Header(Flow)][Toggle] _FlowUse("UV流动功能（一般搭配RT使用）", Float) = 0
         _FlowScale("流动噪声UV缩放(xy)和时间移动(zw)", Vector) = (1, 1, 0, 0)
         _FlowMul("流动强度", Range(0, 1)) = 0
+        
+        [Header(Dissolve)][Toggle] _DissolveUse("溶解功能（配合下面的溶解贴图）", Float) = 0
+        [NoScaleOffset] _DissolveTex("溶解贴图", 2D) = "white"{}
+        _Dissolve("溶解进度 as Texcoord0.w", Range(0, 1)) = 0
+        _DissolveScale("溶解进度UV缩放(xy)和时间移动(zw)", Vector) = (1, 1, 0, 0)
         
         [HideInInspector] _Cutoff("Alpha Cutoff", Range(0.0, 1.0)) = 0
         [HideInInspector] _AlphaToMask("AlphaToMask", Int) = 1
@@ -49,7 +54,7 @@ Shader "VFX/vfx_shader_dissolve"
         ZClip [_ZClip]
         ZWrite [_ZWrite]
         Blend [_SRGB] [_DRGB], [_SA] [_DA]
-
+        
         Pass
         {
             HLSLPROGRAM
@@ -61,27 +66,28 @@ Shader "VFX/vfx_shader_dissolve"
             #include "StandardNoise.hlsl"
 
             sampler2D _MainTex;
-            sampler2D _Noise;
-            float _Cutoff;
             float4 _MainCol;
+            float4 _NoiseMul;
+            float _NoisePow;
+            float _NoiseView;
+            sampler2D _Noise;
+            float4 _NoiseColor1;
+            float4 _NoiseColor2;
+            float4 _NoiseColor3;
 
-            sampler2D _NoiseMask;
-
-            float _Dissolve;
-            float4 _DissolveScale;
-
-            float _Edge;
-            float4 _EdgeColor;
-            float _EdgeLen;
-            
-            float _NDVUse;
-            float4 _NDVColor;
-            float _NDVPow;
+            float _RtUse;
 
             float _FlowUse;
             float4 _FlowScale;
             float _FlowMul;
 
+            float _Tim;
+
+            float _DissolveUse;
+            sampler2D _DissolveTex;
+            float _Dissolve;
+            float4 _DissolveScale;
+            
             struct appdata
             {
                 float4 positionOS   : POSITION;
@@ -89,7 +95,6 @@ Shader "VFX/vfx_shader_dissolve"
                 // float4 tangent      : TANGENT;
                 float4 color        : COLOR;
                 float4 uv           : TEXCOORD0;
-                float4 custom       : TEXCOORD1;
             };
 
             struct v2g
@@ -99,7 +104,6 @@ Shader "VFX/vfx_shader_dissolve"
                 float4 uv           : TEXCOORD0;
                 float3 normalWS     : TEXCOORD1;
                 float3 positionWS   : TEXCOORD2;
-                float4 custom       : TEXCOORD3;
             };
 
             struct g2f
@@ -109,18 +113,17 @@ Shader "VFX/vfx_shader_dissolve"
                 float4 uv           : TEXCOORD0;
                 float3 normalWS     : TEXCOORD1;
                 float3 positionWS   : TEXCOORD2;
-                float4 custom       : TEXCOORD3;
             };
 
             v2g vert(appdata v)
             {
                 v2g o;
                 o.positionWS = TransformObjectToWorld(v.positionOS);
-                o.positionHCS = TransformObjectToHClip(v.positionOS.xyz);
                 o.normalWS = TransformObjectToWorldNormal(v.normalOS);
+                o.positionHCS = TransformObjectToHClip(v.positionOS);
+                
                 o.color = v.color;
                 o.uv = v.uv;
-                o.custom = v.custom;
                 return o;
             }
 
@@ -136,7 +139,6 @@ Shader "VFX/vfx_shader_dissolve"
                     g.uv = vertex.uv;
                     g.normalWS = vertex.normalWS;
                     g.positionWS = vertex.positionWS;
-                    g.custom = vertex.custom;
                     triStream.Append(g);
                 }
             }
@@ -144,34 +146,38 @@ Shader "VFX/vfx_shader_dissolve"
             float4 frag(g2f i) : SV_Target
             {
                 float3 viewDirWS = GetWorldSpaceNormalizeViewDir(i.positionWS);
-                float NDV = pow(saturate(1 - dot(viewDirWS, i.normalWS)), _NDVPow) * _NDVUse;
-                // return float4(NDV, NDV, NDV, 1);
+                float2 screenUV = i.positionHCS.xy / _ScaledScreenParams.xy;
+
+                float NoiseMul = ((i.uv.x < _NoiseMul.x) ? i.uv.x / _NoiseMul.x : 1) *
+                    ((i.uv.x > (1 - _NoiseMul.y)) ? (1 - i.uv.x) / _NoiseMul.y : 1) *
+                    ((i.uv.y < _NoiseMul.z) ? i.uv.y / _NoiseMul.z : 1) *
+                    ((i.uv.y > (1 - _NoiseMul.w)) ? (1 - i.uv.y) / _NoiseMul.w : 1);
+                NoiseMul = pow(NoiseMul, _NoisePow);
+                if (_NoiseView == 1) return float4(NoiseMul, NoiseMul, NoiseMul, 1);
                 
-                float perlin = PerlinNoise(i.uv * _FlowScale.xy + _Time * _FlowScale.zw) * 2 - 1;
-                float perlin2 = PerlinNoise(-i.uv * _FlowScale.xy + _Time * _FlowScale.zw) * 2 - 1;
+                float2 uv = _RtUse * screenUV + (1 - _RtUse) * i.uv;
                 
-                float4 col = tex2D(_MainTex, i.uv +
-                    _FlowUse * _FlowMul * float2(perlin, perlin2)) * _MainCol * i.color;
-                float4 noise = tex2D(_Noise, i.uv * _DissolveScale.xy +
-                    _Time * _DissolveScale.zw +
-                    _FlowUse * _FlowMul * float2(perlin, perlin2));
+                float perlin = PerlinNoise(i.uv * _FlowScale.xy + _Time * _FlowScale.zw);
+                float perlin2 = PerlinNoise(float2(1.2345, -3.4567) + i.uv * _FlowScale.xy + _Time * _FlowScale.zw);
+
+                float2 uvOffset = saturate(min(2 * (_Tim + i.uv.z), -2 * (_Tim + i.uv.z) + 2)) * NoiseMul * _FlowUse * _FlowMul * float2(perlin, perlin2);
+                float4 col = tex2D(_MainTex, uv + uvOffset) * _MainCol;
+                float4 noiseColor = tex2D(_Noise, i.uv + float2((_Tim + i.uv.z) * 2 - 1, 0) + uvOffset);
+                float4 dissolveColor = tex2D(_DissolveTex, _DissolveScale.xy * i.uv) * _MainCol;
                 
-                float4 noisemask = tex2D(_NoiseMask, i.uv);
+                float noiseLevel1 = noiseColor.x;
+                float noiseLevel2 = noiseColor.y;
+                float noiseLevel3 = noiseColor.z;
 
-                col.w -= (_Dissolve + i.uv.z) * ((1 - noise.x)* (1 - noisemask.x) + 1);
-                float colorsave = col.w;
-                col.w = saturate(col.w);
-
-                col += _Edge * float4(_EdgeColor.x, _EdgeColor.y, _EdgeColor.z, 0) * (((colorsave > 0) && (colorsave < _EdgeLen)) ? 1 : 0);
-
-                if (_NDVUse == 1)
-                {
-                    float ndv = 1 - saturate(dot(viewDirWS, i.normalWS));
-                    ndv = pow(ndv, _NDVPow);
-                    col += float4(ndv * _NDVColor.xyz, 0);
-                }
-
-                col.w += _Cutoff;
+                float4 saveCol = col;
+                col = noiseLevel1 * _NoiseColor1 + (1 - noiseLevel1) * col;
+                col = noiseLevel2 * _NoiseColor2 + (1 - noiseLevel2) * col;
+                col += noiseLevel3 * _NoiseColor3;
+                // 刀光色融合四个边缘
+                col = (1 - NoiseMul) * saveCol + (NoiseMul) * col;
+                float dissolve = (1 - (_Dissolve + i.uv.w) * saturate(1 - (_Dissolve + i.uv.w)) * (1 - dissolveColor.x));
+                col = (1 - dissolve) * saveCol + dissolve * col;
+                col.a = 1;
                 
                 return col;
             }
@@ -179,5 +185,5 @@ Shader "VFX/vfx_shader_dissolve"
         }
     }
 
-    CustomEditor "vfx_shader_dissolve"
+    CustomEditor "vfx_shader_knife"
 }
