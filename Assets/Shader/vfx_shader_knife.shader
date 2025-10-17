@@ -148,6 +148,9 @@ Shader "VFX/vfx_shader_knife"
                 float3 viewDirWS = GetWorldSpaceNormalizeViewDir(i.positionWS);
                 float2 screenUV = i.positionHCS.xy / _ScaledScreenParams.xy;
 
+                i.uv.x = saturate(i.uv.x);
+                i.uv.y = saturate(i.uv.y);
+                
                 float NoiseMul = ((i.uv.x < _NoiseMul.x) ? i.uv.x / _NoiseMul.x : 1) *
                     ((i.uv.x > (1 - _NoiseMul.y)) ? (1 - i.uv.x) / _NoiseMul.y : 1) *
                     ((i.uv.y < _NoiseMul.z) ? i.uv.y / _NoiseMul.z : 1) *
@@ -170,13 +173,16 @@ Shader "VFX/vfx_shader_knife"
                 float noiseLevel3 = noiseColor.z;
 
                 float4 saveCol = col;
+                
                 col = noiseLevel1 * _NoiseColor1 + (1 - noiseLevel1) * col;
                 col = noiseLevel2 * _NoiseColor2 + (1 - noiseLevel2) * col;
                 col += noiseLevel3 * _NoiseColor3;
                 // 刀光色融合四个边缘
                 col = (1 - NoiseMul) * saveCol + (NoiseMul) * col;
-                float dissolve = (1 - (_Dissolve + i.uv.w) * saturate(1 - (_Dissolve + i.uv.w)) * (1 - dissolveColor.x));
-                col = (1 - dissolve) * saveCol + dissolve * col;
+                // float dissolve = (1 - (_Dissolve + i.uv.w) *
+                //     saturate(1 - (_Dissolve + i.uv.w)) * (1 - dissolveColor.x));
+                float dissolve = (1 - _Dissolve * (1 - dissolveColor.x)) * (1 - _Dissolve);
+                col = _DissolveUse * ((1 - dissolve) * saveCol + dissolve * col) + (1 - _DissolveUse) * col;
                 col.a = 1;
                 
                 return col;
