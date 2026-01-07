@@ -1,5 +1,7 @@
 # IS-URPVFX-Shaders
-用于制作特效/制作特效shader
+特效制作使用的Shader，推荐特效使用`VFX/VFX大一统Shader`
 
-![tex1](https://github.com/BUGres/IS-URPVFX-Shaders/blob/main/Snipaste_2025-09-24_14-26-18.png)
-![tex2](https://github.com/BUGres/IS-URPVFX-Shaders/blob/main/Snipaste_2025-09-24_14-25-46.png)
++ 大一统作为最常用的Shader，支持`SRPBatcher`，兼容默认的URP管线
++ 其他VFX相关Shader主要给特殊Shader效果使用，需要阅读源码
+
+![tex1](https://github.com/BUGres/IS-URPVFX-Shaders/blob/main/Snipaste_2026-01-07_13-47-56.png)
