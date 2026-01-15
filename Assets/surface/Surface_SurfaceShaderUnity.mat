@@ -1,0 +1,126 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Surface_SurfaceShaderUnity
+  m_Shader: {fileID: 4800000, guid: 4321e111afbdc0f41b4b6aebf9935f4d, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords:
+  - _PBR_AL_ON
+  - _PBR_ON
+  m_InvalidKeywords:
+  - _RMO_ON
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses: []
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - _HDRTex:
+        m_Texture: {fileID: 2800000, guid: 41de19003a7084744879b39d9ebb1063, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTex:
+        m_Texture: {fileID: 2800000, guid: 56ae12d080f9a154e98fb9a2713d80da, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MainTexture:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NormalTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RMOTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TextureI:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TextureII:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _TextureIII:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AO: 0
+    - _AlphaToMask: 0
+    - _BlendI_II: 0
+    - _ColorMask: 15
+    - _Conservative: 0
+    - _Cull: 2
+    - _Cutoff: 0.5
+    - _DA: 0
+    - _DRGB: 0
+    - _Dissolve: 0
+    - _DissolveState: 0
+    - _DissolveType: 0
+    - _EnableTextureIAlpha: 0
+    - _EnableTextureIIAlpha: 0
+    - _EnableTextureIIIAlpha: 0
+    - _EnableVertexColor: 1
+    - _F0: 0.97
+    - _F82: 0.97
+    - _FE: 0
+    - _FEMul: 1
+    - _FEPow: 3.37
+    - _FakeIBL: 1
+    - _KK: 0
+    - _KKMul: 0.29
+    - _KKPow: 7.62
+    - _Metallic: 0.101
+    - _MixedColorAsAlpha: 1
+    - _NDV: 0
+    - _NDVMul: 0
+    - _NDVPow: 0
+    - _NPR: 0
+    - _NRP: 1
+    - _OffsetFactor: 0
+    - _OffsetUnits: 0
+    - _PBR: 1
+    - _PBR_AL: 1
+    - _PBR_AL_Diffuce: 0.1
+    - _PBR_AL_Diffuse: 0.1
+    - _PBR_AL_Specular: 0.2
+    - _RMO: 1
+    - _RealShadow: 0.312
+    - _RenderType: 1
+    - _Roughness: 0.448
+    - _SA: 0
+    - _SRGB: 1
+    - _TextureIFit: 0
+    - _TextureIIFit: 0
+    - _UVNoise: 0
+    - _UVNoiseScale: 0
+    - _UVNoiseTimeScale: 0
+    - _UVNoiseWeight: 0
+    - _UseNormalTex: 0
+    - _UseSamplerNormal: 1
+    - _ZClip: 1
+    - _ZWrite: 1
+    m_Colors:
+    - _FECol: {r: 0.99999994, g: 0.99999994, b: 0.99999994, a: 1}
+    - _KKCol: {r: 1, g: 1, b: 1, a: 1}
+    - _MainCol: {r: 1, g: 1, b: 1, a: 1}
+    - _NDVCol: {r: 1, g: 1, b: 1, a: 1}
+    - _TextureIFlow: {r: 0, g: 0, b: 0, a: 0}
+    - _TextureIIFlow: {r: 0, g: 0, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
